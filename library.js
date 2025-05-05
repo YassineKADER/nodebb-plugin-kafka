@@ -3,6 +3,8 @@
 const nconf = require.main.require('nconf');
 const winston = require.main.require('winston');
 
+const { Kafka } = require('kafkajs');
+
 const meta = require.main.require('./src/meta');
 
 const controllers = require('./lib/controllers');
@@ -15,10 +17,18 @@ plugin.init = async (params) => {
 	const { router /* , middleware , controllers */ } = params;
 
 	// Settings saved in the plugin settings can be retrieved via settings methods
-	const { setting1, setting2 } = await meta.settings.get('quickstart');
+	const { setting1, setting2 } = await meta.settings.get('kafka');
 	if (setting1) {
 		console.log(setting2);
 	}
+
+	const kafka = new Kafka({
+		clientId: "my-app",
+		brokers: ["localhost:9092"],
+	});
+
+	plugin.kafka_producer = kafka.producer();
+	await plugin.kafka_producer.connect();
 
 	/**
 	 * We create two routes for every view. One API call, and the actual route itself.
@@ -26,15 +36,15 @@ plugin.init = async (params) => {
 	 *
 	 * Other helpers include `setupAdminPageRoute` and `setupAPIRoute`
 	 * */
-	routeHelpers.setupPageRoute(router, '/quickstart', [(req, res, next) => {
-		winston.info(`[plugins/quickstart] In middleware. This argument can be either a single middleware or an array of middlewares`);
+	routeHelpers.setupPageRoute(router, '/kafka', [(req, res, next) => {
+		winston.info(`[plugins/kafka] In middleware. This argument can be either a single middleware or an array of middlewares`);
 		setImmediate(next);
 	}], (req, res) => {
-		winston.info(`[plugins/quickstart] Navigated to ${nconf.get('relative_path')}/quickstart`);
-		res.render('quickstart', { uid: req.uid });
+		winston.info(`[plugins/kafka] Navigated to ${nconf.get('relative_path')}/kafka`);
+		res.render('kafka', { uid: req.uid });
 	});
 
-	routeHelpers.setupAdminPageRoute(router, '/admin/plugins/quickstart', controllers.renderAdminPage);
+	routeHelpers.setupAdminPageRoute(router, '/admin/plugins/kafka', controllers.renderAdminPage);
 };
 
 /**
@@ -65,10 +75,10 @@ plugin.init = async (params) => {
 plugin.addRoutes = async ({ router, middleware, helpers }) => {
 	const middlewares = [
 		middleware.ensureLoggedIn,			// use this if you want only registered users to call this route
-		// middleware.admin.checkPrivileges,	// use this to restrict the route to administrators
+		middleware.admin.checkPrivileges,	// use this to restrict the route to administrators
 	];
 
-	routeHelpers.setupApiRoute(router, 'get', '/quickstart/:param1', middlewares, (req, res) => {
+	routeHelpers.setupApiRoute(router, 'get', '/kafka/:param1', middlewares, (req, res) => {
 		helpers.formatApiResponse(200, res, {
 			foobar: req.params.param1,
 		});
@@ -77,12 +87,33 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 
 plugin.addAdminNavigation = (header) => {
 	header.plugins.push({
-		route: '/plugins/quickstart',
+		route: '/plugins/kafka',
 		icon: 'fa-tint',
-		name: 'Quickstart',
+		name: 'Kafka',
 	});
 
 	return header;
 };
+
+plugin.handelPosts = async function (post) {
+	await plugin.kafka_producer.send({
+		topic: "nodebb-posts",
+		messages: [{
+			key: String(post.post.pid),
+			value: JSON.stringify(post)
+		}]
+	})
+}
+
+plugin.handelUploads = async function (data) {
+	await plugin.kafka_producer.send({
+		topic: "nodebb-images",
+		messages: [{
+			key: String(data.image.path),
+			value: JSON.stringify(data)
+		}]
+	})
+	return data;
+}
 
 module.exports = plugin;

@@ -15,12 +15,12 @@ export function init() {
 };
 
 function handleSettingsForm() {
-	load('quickstart', $('.quickstart-settings'), function () {
+	load('kafka', $('.quickstart-settings'), function () {
 		setupColorInputs();
 	});
 
 	$('#save').on('click', () => {
-		save('quickstart', $('.quickstart-settings')); // pass in a function in the 3rd parameter to override the default success/failure handler
+		save('kafka', $('.quickstart-settings')); // pass in a function in the 3rd parameter to override the default success/failure handler
 	});
 }
 
@@ -44,7 +44,7 @@ function setupUploader() {
 			uploader.show({
 				route: config.relative_path + '/api/admin/upload/file',
 				params: {
-					folder: 'quickstart',
+					folder: 'kafka',
 				},
 				accept: 'image/*',
 			}, function (image) {

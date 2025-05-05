@@ -1,16 +1,16 @@
 {
-  "name": "nodebb-plugin-quickstart",
+  "name": "nodebb-plugin-kafka",
   "version": "0.4.3",
-  "description": "A starter kit for quickly creating NodeBB plugins",
+  "description": "posting events to kafka topics",
   "main": "library.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nodebb/nodebb-plugin-quickstart"
+    "url": "https://github.com/YassineKader/nodebb-plugin-kafka"
   },
   "keywords": [
     "nodebb",
     "plugin",
-    "quickstart",
+    "kafka",
     "shell"
   ],
   "husky": {
@@ -41,5 +41,8 @@
     "eslint-plugin-import": "2.x",
     "husky": "9.1.7",
     "lint-staged": "15.5.1"
+  },
+  "dependencies": {
+    "kafkajs": "^2.2.4"
   }
 }
