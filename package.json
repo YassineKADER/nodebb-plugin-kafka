@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-kafka",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "posting events to kafka topics",
   "main": "library.js",
   "repository": {
@@ -43,6 +43,8 @@
     "lint-staged": "15.5.1"
   },
   "dependencies": {
-    "kafkajs": "^2.2.4"
+    "aws-sdk": "^2.1692.0",
+    "kafkajs": "^2.2.4",
+    "uuid": "^11.1.0"
   }
 }
